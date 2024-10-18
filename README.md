@@ -180,9 +180,7 @@ var < 49378216050 is false
 var > 49378216050 is true
 ```
 
-this means thar var is in [49378216050, 98765423100]
-
-this already gives us a limited range to bruteforce, nice !
+this means that the solution to the puzzle is in [49378216050, 98765423100], this already gives us a limited range to bruteforce, nice ! 😎
 
 
 # retrieving immutable values to find the target hash
