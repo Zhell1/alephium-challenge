@@ -111,9 +111,9 @@ Here, we load "5" on the stack, then we load "false", swap them and check if the
 
 ## let's focus on the goal
 
-But what we want is to get funds, so we look for functions related to moving funds and we find:
-TransferAlphToSelf
-TransferAlphFromSelf
+What we want is to get funds, so we look for functions related to moving funds and we find:
+- TransferAlphToSelf
+- TransferAlphFromSelf
 
 since we want to get funds from the contract, the one we want to target is the second one, here it is with the instructions right above it:
 
@@ -130,7 +130,7 @@ since we want to get funds from the contract, the one we want to target is the s
     { "name": "TransferAlphFromSelf" },
 ```
 
-what can we read ? that to get to TransferAlphFromSelf, we need to:
+What can we read ? that to get to TransferAlphFromSelf, we need to:
 
 - load local var 1 onto the stack (which is the puzzle solution we have to provide)
 - convert it to 8 byte format
@@ -143,17 +143,17 @@ what can we read ? that to get to TransferAlphFromSelf, we need to:
 - finally, load the the local field 0 (an alephium address) and immutable field 0 (the amount of alephium to send, 100)
 - call TransferAlphFromSelf
 
-so we start to realize we'll have to bruteforce using blake2b hash algorithm, but before that we need to find the target hash to bruteforce
+So we start to realize we'll have to bruteforce using blake2b hash algorithm, but before that we need to find the target hash to bruteforce
 
 # reducing the bruteforce range based on the instructions' logic
 
-reminder:
+Reminder:
 - LoadLocal to load value relative to execution context (ex args passed to current function)
 - vs LoadImmField loads the global args that are immutables
 
 Finally, from the intructions we can deduce what the four meaningful tests do:
 
-```json
+```js
 var < 9876543210 ?
 	false => offset 6 => jump to 2nd test
 	true => error
