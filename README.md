@@ -1,4 +1,6 @@
-# cracking alephium's puzzle
+# cracking alephium's puzzle challenge
+
+This is the detailed steps of how I managed to crack the alephium puzzle challenge.
 
 
 # first steps
@@ -28,6 +30,9 @@ My attempts at building a mock stack executer turned out a bit useless. You can 
 At this point, I wasn't too sure of what the puzzle solution format should look like, so I did some experiments with bruteforcing for text characters (which you can find in `src/letter search/`). Tried with normal letters, extended ones, even some dictionnary search with some added crypto related words.
 
 Nothing proved fruitful and after bruteforcing for 5-6 letters, it became extremely slow.
+
+
+# the missing fourth hint
 
 I could feel I was probably not going in the right direction so I decided to recheck everything from scratch.
 
