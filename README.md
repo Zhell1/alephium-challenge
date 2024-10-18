@@ -92,22 +92,24 @@ So we know that our goal is to find a number, not text characters, that's a big 
 
 # using stack instructions to limit the range
 
-So, I eventually realized I will have to execute the stack by hand
+So, I eventually realized I will have to execute the stack by hand 😩
 
-first I had to clean them a bit, the cleaned instructions can be found in `instructions.md`
+First I had to clean them a bit, the cleaned instructions can be found in `instructions.md`
 
-now you execute them line by line trying to follow what a stack executer would do and noting what the code does as you go.
+Now you execute them line by line trying to follow what a stack executer would do and noting what the code does as you go.
 
-this is made more difficult by the "jump" instructions which (on conditions being true) make the executer jump to another instructions further in the list.
+This is made more difficult by the "jump" instructions which (on conditions being true) make the executer jump to another instructions further in the list.
 
-At least 5 times, the code does some test like this one:
+At least 5 times, the code does some test like this:
 ```
     { "name": "U256Const5" },
     { "name": "ConstFalse" },
     { "name": "Swap" },
     { "name": "AssertWithErrorCode" },
 ```
-here, we load "5" on the stack, then we load "false", swap them and check if the top value of the stack is true or we return an error.
+Here, we load "5" on the stack, then we load "false", swap them and check if the top value of the stack is true or we return an error. it seems really useless as it would be the same as just aborting with error, but it's probably done that way to add confusion?
+
+## let's focus on the goal
 
 But what we want is to get funds, so we look for functions related to moving funds and we find:
 TransferAlphToSelf
