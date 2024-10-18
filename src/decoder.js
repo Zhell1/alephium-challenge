@@ -6,9 +6,7 @@ const contract_bytecode = "0201407f01010202004045d30bea1a18160113c1024cb016ea314
 
 // Ensure the bytecode is a Buffer if required by the codec
 const bytecodeBuffer = Buffer.from(contract_bytecode, 'hex');
-
 const decoded = codec.contract.contractCodec.decodeContract(bytecodeBuffer)
-
 console.log("decoded:", decoded)
 console.log("instrs:", decoded.methods[0].instrs)
 

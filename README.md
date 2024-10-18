@@ -1,7 +1,14 @@
 # cracking alephium's puzzle challenge
 
-This is the detailed steps of how I managed to crack the alephium puzzle challenge.
+This is the detailed steps of how I managed to crack the alephium puzzle challenge for the EPFL meetup
 
+The site for the challenge is at  https://epfl-meetup.alephium.org and we were given these hints:
+
+- hint0: [contract address](https://explorer.alephium.org/addresses/24MWgvENpiSY3asFLAVDuWLBViJTb8AjcK5U3EM6xhBZ9)
+- hint1: [VM explorer](https://alephium-decoder.softfork.se/)
+- hint2: [DOC](https://docs.alephium.org/dapps/concepts/overview)
+
+![challenge](./images/challenge.png)
 
 # first steps
 
@@ -45,23 +52,27 @@ instrs: [
 ]
 ```
 
-At this point, I could understand this to be instructions for a stack-based executer, because it looked similar to bitcoin's op_codes script format.
+# trying to make sense of it
 
-the "code" property for each instruction is just a reference value, so we can ignore it, other properties are the arg/vars used to call the instruction. For example:
+At this point, I could understand this to be instructions for a stack-based executer, because it looked similar to bitcoin's op_codes script format, [here is a great article on stack in bitcoin script](https://scryptplatform.medium.com/introduction-to-bitcoin-smart-contracts-9c0ea37dc757).
 
-`{ name: 'U256Const', code: 19, value: 9876543210n },`
+The `code` property for each instruction is just a reference value, so we can ignore it, other properties are the arg/vars used to call the instruction. For example:
 
-this loads a constant var of value 9876543210n, it's essentially the same as:
+```js
+{ name: 'U256Const', code: 19, value: 9876543210n },
+```
+
+loads a constant var of value 9876543210n, it's essentially the same as:
 ```js
 const myvar = 9876543210
 ```
 
-But I wasn't sure of how to make sense of all of it, sure I could try to execute it by hand, but I'm lazy so I wanted to find an easier way.
+
+# wrong directions
+
+I wasn't sure how to make sense of all of it, sure I could try to execute entirely by hand, but I'm lazy so I wanted to find an easier way.
 
 My attempts at building a mock stack executer turned out a bit useless, because it didn't really help me understand what was the intent of the code. You can find them in `src/stack_executer/`
-
-
-# wrong direction
 
 At this point, I wasn't too sure of what the puzzle solution format should look like, so I did some experiments with bruteforcing for text characters (which you can find in `src/letter search/`). Tried with normal letters, extended ones, even some dictionnary search with some added crypto related words.
 
@@ -79,7 +90,7 @@ That's when I saw the picture from the presentation slides, which actually gives
 So we know that our goal is to find a number, not text characters, that's a big relief !
 
 
-# using the stack instructions to limit the possibilities
+# using stack instructions to limit the range
 
 So, I eventually realized I will have to execute the stack by hand
 
@@ -131,6 +142,45 @@ what can we read ? that to get to TransferAlphFromSelf, we need to:
 - call TransferAlphFromSelf
 
 so we start to realize we'll have to bruteforce using blake2b hash algorithm, but before that we need to find the target hash to bruteforce
+
+# reducing the bruteforce range based on the instructions' logic
+
+reminder:
+- LoadLocal to load value relative to execution context (ex args passed to current function)
+- vs LoadImmField loads the global args that are immutables
+
+Finally, from the intructions we can deduce what the four meaningful tests do:
+
+```json
+var < 9876543210 ?
+	false => offset 6 => jump to 2nd test
+	true => error
+
+var > 9876543210 * 10 ?
+	false => offset 6 => jump to 3rd test
+	true => error
+
+var < 5 * 9876543210 ?
+	false => offset 12 => jump to 4th test
+	true => TransferAlphToSelf (doesn't make sense for us)
+
+var > 5 * 9876543210 ?
+	false => offset 12 => error
+	true => TransferAlphFromSelf (that's what we want)
+```
+
+so we can deduce:
+
+```js
+var < 9876543210  is false
+var > 98765423100 is false
+var < 49378216050 is false
+var > 49378216050 is true
+```
+
+this means thar var is in [49378216050, 98765423100]
+
+this already gives us a limited range to bruteforce, nice !
 
 
 # retrieving immutable values to find the target hash
