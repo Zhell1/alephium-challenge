@@ -10,7 +10,7 @@ import (
 
 // Declare startFrom and endAt as big.Int
 var (
-    startFrom  = big.NewInt(53620999995) ///49378216050; 
+    startFrom  = big.NewInt(57412999994) ///49378216050; 
     endAt      = big.NewInt(98765423100) 
     targetHash = "0c1f9f51c90b70c1fb747c2860150d1187d248f508279cf3a24597039ab863d5"
 )
@@ -88,7 +88,7 @@ func bruteForceSearch() {
 
 		// Log progress every 1 million iterations
         iterations++
-        if iterations%1000000 == 0 { 
+        if iterations%2000000 == 0 { 
             printProgress(currentValue, totalRange, blakeHash, startTime, iterations) 
         }
 

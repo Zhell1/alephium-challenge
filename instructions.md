@@ -1,3 +1,5 @@
+
+const instructions = [
     { "name": 'MethodSelector', "selector": 199891480 },
     { "name": "LoadLocal", "index": 1 },
     { "name": "U256Const", "value": 9876543210n },
@@ -67,3 +69,4 @@
     { "name": "Swap" },
     { "name": "AssertWithErrorCode" },
     { "name": "Pop" }
+]
