@@ -1,9 +1,7 @@
-https://chatgpt.com/c/6711a9ef-570c-8003-a4fe-8d10b9c882ee
-https://chatgpt.com/c/6711baf3-1f40-8003-b61c-f051a047d545
+this was an attempt at using chatgpt to make sense of the instructions
 
-contract contains 100.10 alph = 10010000000000000000 phi
+it is quite wrong in the details like calculations, but quite right in the overall "steps"
 
-attempt at explaining what the codes does in a decompiled form similar to js
 
 ```js
 // Function that represents the original logic based on the given instructions

@@ -9,6 +9,8 @@ on the website, use the explorer to retrieve the transaction id, input it into t
 
 that gives you the bytecode for the contract, save it somewhere
 
+![bytecode](./images/bytecode.png)
+
 
 # decoding the script
 
@@ -16,13 +18,47 @@ First my goal was to decode the script to get a better understanding of it
 
 in the "breakdown" tab of the VM explorer, by passing the mouse over the colored instructions, we see that some of them are values and others are named instructions
 
-[todo add instructions]
+![vminstructions](./images/vminstructions.png)
 
-At this point, I could understand this to be instructions for a stack-based executer, because it looked similar to bitcoin op_codes script format.
+I found that I can use the `@alephium/web3` package to try to decode it more properly
 
-But I wasn't sure of how to make sense of it, sure I could try to execute it by hand, but I'm lazy so I wanted to find an easier way.
+you can find that in `decoder.js`, but basically this is it:
 
-My attempts at building a mock stack executer turned out a bit useless. You can find them in `src/stack_executer/`
+```js
+const bytecodeBuffer = Buffer.from(contract_bytecode, 'hex');
+const decoded = codec.contract.contractCodec.decodeContract(bytecodeBuffer)
+console.log("instrs:", decoded.methods[0].instrs)
+```
+
+and the result looks like this:
+
+```js
+instrs: [
+  { name: 'MethodSelector', code: 211, selector: 199891480 },
+  { name: 'LoadLocal', code: 22, index: 1 },
+  { name: 'U256Const', code: 19, value: 9876543210n },
+  { name: 'U256Lt', code: 49 },
+  [...]
+  { name: 'Swap', code: 124 },
+  { name: 'AssertWithErrorCode', code: 123 },
+  { name: 'Pop', code: 24 }
+]
+```
+
+At this point, I could understand this to be instructions for a stack-based executer, because it looked similar to bitcoin's op_codes script format.
+
+the "code" property for each instruction is just a reference value, so we can ignore it, other properties are the arg/vars used to call the instruction. For example:
+
+`{ name: 'U256Const', code: 19, value: 9876543210n },`
+
+this loads a constant var of value 9876543210n, it's essentially the same as:
+```js
+const myvar = 9876543210
+```
+
+But I wasn't sure of how to make sense of all of it, sure I could try to execute it by hand, but I'm lazy so I wanted to find an easier way.
+
+My attempts at building a mock stack executer turned out a bit useless, because it didn't really help me understand what was the intent of the code. You can find them in `src/stack_executer/`
 
 
 # wrong direction
@@ -38,7 +74,7 @@ I could feel I was probably not going in the right direction so I decided to rec
 
 That's when I saw the picture from the presentation slides, which actually gives us one very precious hint that wasn't on the website: "find the number"
 
-![hint4](./hint4.png)
+![hint4](./images/hint4.png)
 
 So we know that our goal is to find a number, not text characters, that's a big relief !
 
@@ -83,24 +119,25 @@ since we want to get funds from the contract, the one we want to target is the s
 
 what can we read ? that to get to TransferAlphFromSelf, we need to:
 
-- load local var 1 (which is the puzzle solution)
+- load local var 1 onto the stack (which is the puzzle solution we have to provide)
 - convert it to 8 byte format
 - apply Blake2b hash algorithm on it
-- LoadImmField baffled me for some time, but looking into alephium doc I found that Imm stands for Immutables, some vars that are defined on contract deployment. 
-  - so we load immutable field 1 (this is our target hash, we'll see how to retrieve it in the next step)  
+- this next instruction, LoadImmField, baffled me for some time, but looking into [alephium's doc on contract deployment](https://docs.alephium.org/dapps/tutorials/deep-dive/#deploy-your-contract) I found that Imm stands for Immutables, some vars that are defined on contract deployment. 
+  - the doc explains: `In the immFields we can see our initial TokenFaucet arguments (symbol, name, decimals, supply). `
+  - so we load immutable field 1 onto the stack (this is our target hash, we'll see how to retrieve it in the next step)  
 - finally, we compare immutable field 1 (target hash) with the hash obtained from blake2b
-- load 3 onto the stack then check if it's true (this seems like some useless code just here to confuse us)
-- finally, load the the local field 0 (alephium address) and immutable field 0 (the amount of alephium to send, 100)
-- transfer them from the contract to the address
+- load "3" onto the stack then check if it's true (this seems like some useless code just here to confuse us)
+- finally, load the the local field 0 (an alephium address) and immutable field 0 (the amount of alephium to send, 100)
+- call TransferAlphFromSelf
 
 so we start to realize we'll have to bruteforce using blake2b hash algorithm, but before that we need to find the target hash to bruteforce
 
 
-# retrieving immutable values to get the target hash
+# retrieving immutable values to find the target hash
 
 the contract was created with somme immutable values, which are like hardcoded vars at the deployment
 
-We can use the API of any alephium public node to retrieve those:
+As explained in [this page of the doc](https://docs.alephium.org/dapps/tutorials/deep-dive/#create-a-new-project), we can use the API of any alephium public node to retrieve those:
 
 `$ curl 'https://node.mainnet.alephium.org/contracts/24MWgvENpiSY3asFLAVDuWLBViJTb8AjcK5U3EM6xhBZ9/state?group=0'`
 
@@ -164,3 +201,7 @@ Found matching U256 value: 59259259260
 ```
 
 and voilà, you got your puzzle solution: 59259259260
+
+input that with an alephium group0 address into the challenge and a transaction is generated sending the coins to you
+
+
